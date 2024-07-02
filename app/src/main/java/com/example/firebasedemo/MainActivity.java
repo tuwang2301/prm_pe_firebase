@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private ValueEventListener contactsEventListener;
     private ContactAdapter contactAdapter;
     private List<Contact> contactList;
+    private List<Contact> filteredContactList = new ArrayList<>();
     private DatabaseReference mDatabase;
 
     private Button btn_add_activity;
@@ -95,6 +96,8 @@ public class MainActivity extends AppCompatActivity {
                     Contact contact = snapshot.getValue(Contact.class);
                     contactList.add(contact);
                 }
+                filteredContactList.clear();
+                filteredContactList.addAll(contactList);
                 contactAdapter.notifyDataSetChanged();
             }
 
@@ -121,19 +124,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void searchContacts(String query) {
-        List<Contact> filteredList = new ArrayList<>();
+        filteredContactList.clear();
         for (Contact contact : contactList) {
             if (contact.getName().toLowerCase().contains(query.toLowerCase()) ||
                     contact.getEmail().toLowerCase().contains(query.toLowerCase())) {
-                filteredList.add(contact);
+                filteredContactList.add(contact);
             }
         }
-        contactAdapter.updateList(filteredList);
+        contactAdapter.updateList(filteredContactList);
     }
 
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
-        Contact contact = contactList.get(item.getGroupId());
+        Contact contact = filteredContactList.get(item.getGroupId());
         if(item.getItemId() == 1){
             Intent intent = new Intent(this, AddActivity.class);
             Gson gson = new Gson();
