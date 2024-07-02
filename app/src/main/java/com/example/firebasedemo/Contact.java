@@ -16,6 +16,14 @@ public class Contact {
         this.address = address;
         this.photoUrl = photoUrl;
     }
+
+    public Contact(String id, String name, String email, String company, String address) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.company = company;
+        this.address = address;
+    }
     public Contact(String name, String email, String company, String address) {
         this.name = name;
         this.email = email;

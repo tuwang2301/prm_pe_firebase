@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -37,6 +38,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,6 +59,13 @@ public class AddActivity extends AppCompatActivity {
     private Button btn_select_photo, btn_save, btn_back;
 
     private ImageView img_photo;
+
+    private TextView tv_title;
+
+    private boolean isEditMode = false;
+
+    private Contact currentContact;
+
 
     private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
         @Override
@@ -87,6 +96,17 @@ public class AddActivity extends AppCompatActivity {
         btn_back = findViewById(R.id.btn_back);
         btn_save = findViewById(R.id.btn_save);
         img_photo = findViewById(R.id.img_photo);
+        tv_title = findViewById(R.id.tv_title);
+
+        // Kiểm tra intent để xác định chế độ (thêm hoặc chỉnh sửa)
+        if (getIntent() != null && getIntent().hasExtra("contact")) {
+            isEditMode = true;
+            tv_title.setText("Edit Contact");
+            String contactJson = getIntent().getStringExtra("contact");
+            Gson gson = new Gson();
+            currentContact = gson.fromJson(contactJson, Contact.class);
+            populateContactDetails(currentContact);
+        }
 
         btn_select_photo.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -105,8 +125,12 @@ public class AddActivity extends AppCompatActivity {
                 boolean valid = !name.isEmpty() && !email.isEmpty();
 
                 if(valid){
-                    Contact contact = new Contact(name,email,company,address);
-                    uploadImage(imageUri, contact);
+                    Contact contact = new Contact(isEditMode ? currentContact.getId() : null ,name,email,company,address);
+                    if(imageUri != null){
+                        uploadImage(imageUri, contact);
+                    }else {
+                        addOrUpdateContact(contact);
+                    }
                 }else {
                     Toast.makeText(AddActivity.this, "Name and email cannot be empty!", Toast.LENGTH_SHORT).show();
                 }
@@ -154,12 +178,23 @@ public class AddActivity extends AppCompatActivity {
     }
 
     public void addOrUpdateContact(Contact contact) {
-
         // If id is null, generate a new one
         if (contact.getId() == null) {
             String id = mDatabase.child("contacts").push().getKey();
             contact.setId(id);
         }
         mDatabase.child("contacts").child(contact.getId()).setValue(contact);
+        Toast.makeText(AddActivity.this, "Successfully!", Toast.LENGTH_SHORT).show();
+        finish();
     }
+
+    private void populateContactDetails(Contact contact) {
+        edt_name.setText(contact.getName());
+        edt_email.setText(contact.getEmail());
+        edt_company.setText(contact.getCompany());
+        edt_address.setText(contact.getAddress());
+        // Load ảnh vào imgPhoto
+        Glide.with(this).load(contact.getPhotoUrl()).into(img_photo);
+    }
+
 }
