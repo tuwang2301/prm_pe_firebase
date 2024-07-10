@@ -11,13 +11,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -57,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         btn_add_activity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, AddActivity.class);
+                Intent intent = new Intent(MainActivity.this, AddAndEditActivity.class);
                 startActivity(intent);
             }
         });
@@ -138,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onContextItemSelected(@NonNull MenuItem item) {
         Contact contact = filteredContactList.get(item.getGroupId());
         if(item.getItemId() == 1){
-            Intent intent = new Intent(this, AddActivity.class);
+            Intent intent = new Intent(this, AddAndEditActivity.class);
             Gson gson = new Gson();
             String contactJson = gson.toJson(contact);
             intent.putExtra("contact", contactJson);

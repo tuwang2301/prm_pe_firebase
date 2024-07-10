@@ -1,15 +1,11 @@
 package com.example.firebasedemo;
 
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,15 +14,9 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -40,13 +30,7 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.google.gson.Gson;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.UUID;
-
-public class AddActivity extends AppCompatActivity {
+public class AddAndEditActivity extends AppCompatActivity {
 
     private StorageReference storageReference;
 
@@ -74,7 +58,7 @@ public class AddActivity extends AppCompatActivity {
                 imageUri = o.getData().getData();
                 Glide.with(getApplicationContext()).load(imageUri).into(img_photo);
         }else {
-                Toast.makeText(AddActivity.this, "Please select an image", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AddAndEditActivity.this, "Please select an image", Toast.LENGTH_SHORT).show();
             }
     }
 });
@@ -85,7 +69,7 @@ public class AddActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add);
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        FirebaseApp.initializeApp(AddActivity.this);
+        FirebaseApp.initializeApp(AddAndEditActivity.this);
         storageReference = FirebaseStorage.getInstance().getReference();
 
         edt_name = findViewById(R.id.edt_name);
@@ -118,24 +102,33 @@ public class AddActivity extends AppCompatActivity {
         btn_save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String name = edt_name.getText().toString();
-                String email = edt_email.getText().toString();
-                String company = edt_company.getText().toString();
-                String address = edt_address.getText().toString();
-                boolean valid = !name.isEmpty() && !email.isEmpty();
+                String name = edt_name.getText().toString().trim();
+                String email = edt_email.getText().toString().trim();
+                String company = edt_company.getText().toString().trim();
+                String address = edt_address.getText().toString().trim();
 
-                if(valid){
-                    Contact contact = new Contact(isEditMode ? currentContact.getId() : null ,name,email,company,address);
-                    if(imageUri != null){
+                // Kiểm tra tên và email không rỗng
+                boolean validEmpty = !name.isEmpty() && !email.isEmpty();
+
+                // Kiểm tra định dạng email
+                String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
+                boolean validEmail = email.matches(emailPattern);
+
+                if(!validEmpty){
+                    Toast.makeText(AddAndEditActivity.this, "Name and email cannot be empty!", Toast.LENGTH_SHORT).show();
+                } else if (!validEmail){
+                    Toast.makeText(AddAndEditActivity.this, "Wrong format for email!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Contact contact = new Contact(isEditMode ? currentContact.getId() : null, name, email, company, address);
+                    if (imageUri != null) {
                         uploadImage(imageUri, contact);
-                    }else {
+                    } else {
                         addOrUpdateContact(contact);
                     }
-                }else {
-                    Toast.makeText(AddActivity.this, "Name and email cannot be empty!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+
 
         btn_back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -165,14 +158,14 @@ public class AddActivity extends AppCompatActivity {
                     String downloadUrl = downloadUri.toString();
                     contact.setPhotoUrl(downloadUrl);
                     addOrUpdateContact(contact);
-                    Toast.makeText(AddActivity.this, "Upload successful", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AddAndEditActivity.this, "Upload successful", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(AddActivity.this, "Failed to get download URL", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AddAndEditActivity.this, "Failed to get download URL", Toast.LENGTH_SHORT).show();
                 }            }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Toast.makeText(AddActivity.this, "There was an error while uploading image", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AddAndEditActivity.this, "There was an error while uploading image", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -184,7 +177,7 @@ public class AddActivity extends AppCompatActivity {
             contact.setId(id);
         }
         mDatabase.child("contacts").child(contact.getId()).setValue(contact);
-        Toast.makeText(AddActivity.this, "Successfully!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(AddAndEditActivity.this, "Successfully!", Toast.LENGTH_SHORT).show();
         finish();
     }
 

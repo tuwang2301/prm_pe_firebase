@@ -1,4 +1,5 @@
 package com.example.firebasedemo;
+
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,9 +39,11 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
         holder.tv_email.setText(contact.getEmail());
         holder.tv_company.setText(contact.getCompany());
         holder.tv_address.setText(contact.getAddress());
-        if (contact.getPhotoUrl() != null) {
-            Glide.with(holder.itemView.getContext()).load(contact.getPhotoUrl()).into(holder.imageViewPhoto);
-        }
+        String url = contact.getPhotoUrl() == null ? "" : contact.getPhotoUrl();
+        Glide.with(holder.itemView.getContext())
+                .load(url)
+                .error(R.drawable.default_avatar)
+                .into(holder.imageViewPhoto);
     }
 
     @Override
@@ -55,7 +58,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
 
     class ContactViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
 
-        TextView tv_name, tv_email, tv_company, tv_address, tv_id ;
+        TextView tv_name, tv_email, tv_company, tv_address, tv_id;
         ImageView imageViewPhoto;
 
         CardView cardView;
